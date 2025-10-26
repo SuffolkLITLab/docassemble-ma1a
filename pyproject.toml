@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "docassemble.ma1a"
-version = "0.72"
+version = "0.72.1"
 description = "Massachusetts 1A Divorce Forms"
 readme = "README.md"
 authors = [
