@@ -1,0 +1,404 @@
+---
+comment: |
+  Download screen and PDF attachments for MA 1A Divorce forms
+  
+  - CJ-D 101A Joint Petition: 47 fields (see CJD101A_FIELD_MAPPING.md)
+  - Affidavit of Irretrievable Breakdown: 19 fields
+  
+  PDFs are generated conditionally based on ma1a_case.forms_needed
+---
+attachment:
+  name: Joint Petition for Divorce (CJ-D 101A)
+  filename: CJD-101A
+  variable name: cjd_101a_pdf
+  pdf template file: CJD101A-FILLEDOUT.pdf
+  editable: False
+  skip undefined: True
+  fields:
+    # Header fields (court and case information)
+    - "trial_court_division": ${ trial_court.division }
+    - "docket_number": ""  # Leave blank - assigned by court clerk
+    - "header_petitioner_a_name": ${ users[0].name.full() }
+    - "header_petitioner_b_name": ${ other_parties[0].name.full() }
+    - "Textbox5": ${ trial_court }
+    
+    # Petitioner A (Party A) information
+    - "Textbox6": ${ users[0].name.full() }
+    - "Textbox7": ${ users[0].address.address }
+    - "Textbox8": ${ users[0].address.city }
+    - "Textbox9": ${ users[0].address.state }
+    - "Textbox10": ${ users[0].address.zip }
+    - "Textbox11": ${ users[0].phone_number }
+    - "Textbox12": ${ users[0].email }
+    
+    # Petitioner B (Party B/Spouse) information
+    - "Textbox13": ${ other_parties[0].name.full() }
+    - "Textbox14": ${ other_parties[0].address.address }
+    - "Textbox15": ${ other_parties[0].address.city }
+    - "Textbox16": ${ other_parties[0].address.state }
+    - "Textbox17": ${ other_parties[0].address.zip }
+    - "Textbox18": ${ other_parties[0].phone_number }
+    - "Textbox19": ${ other_parties[0].email }
+    
+    # Marriage information
+    - "Textbox20": ${ marriage_date.format() }
+    - "Textbox21": ${ marriage_place }
+    - "Textbox22": ${ last_lived_together_date.format() }
+    - "Textbox30": ${ last_lived_together_place }
+    
+    # Grounds for divorce (auto-set for 1A)
+    - "Textbox31": ${ grounds_for_divorce }
+    - "Textbox32": ${ breakdown_date.format() }
+    
+    # Previous court actions (conditional)
+    - "Check Box23": ${ has_previous_actions }
+    - "Textbox35": ${ previous_action_details if has_previous_actions else '' }
+    
+    # Children information (conditional)
+    - "Check Box24": ${ has_minor_children }
+    - "Textbox36": ${ comma_and_list([child.name.full() for child in children]) if has_minor_children else '' }
+    - "Textbox37": ${ comma_and_list([child.birthdate.format() for child in children]) if has_minor_children else '' }
+    
+    # Name change requests
+    - "Check Box25": ${ users[0].name_will_change }
+    - "Textbox38": ${ users[0].new_name_after_divorce if users[0].name_will_change else '' }
+    - "Check Box26": ${ other_parties[0].name_will_change }
+    - "Textbox39": ${ other_parties[0].new_name_after_divorce if other_parties[0].name_will_change else '' }
+    
+    # Separation agreement status
+    - "Check Box27": ${ separation_agreement_filed == 'attached' }
+    - "Check Box28": ${ separation_agreement_filed == 'later' }
+    - "Textbox40": ${ 'Merge' if agreement_incorporation_method == 'merge' else 'Survive' }
+    
+    # Attorney information (conditional)
+    - "Textbox41": ${ attorney_name if has_attorney else '' }
+    - "Textbox42": ${ attorney_bbo_number if has_attorney else '' }
+    - "Textbox43": ${ users[0].address.on_one_line() if has_attorney else '' }
+    - "Textbox44": ${ users[0].phone_number if has_attorney else '' }
+    - "Textbox45": ${ users[0].email if has_attorney else '' }
+    
+    # Signatures (blank in preview, filled in final version)
+    - "Signature33": ${ users[0].signature if i == 'final' else '' }
+    - "Textbox46": ${ format_date(today(), format='MM/dd/yyyy') }
+    - "Signature34": ${ other_parties[0].signature if i == 'final' else '' }
+    - "Textbox47": ${ format_date(today(), format='MM/dd/yyyy') }
+    
+    # Additional notes (optional)
+    - "Textbox48": ""
+---
+attachment:
+  name: Affidavit of Irretrievable Breakdown
+  filename: affidavit_irretrievable_breakdown
+  variable name: affidavit_pdf
+  pdf template file: affidirretrievablebreakdown-FILLEDOUT.pdf
+  editable: False
+  skip undefined: True
+  fields:
+    # Based on typical affidavit structure, mapping 19 fields
+    # Top of form (court/case info)
+    - "Textbox17": ${ trial_court.division }  # Court division/docket
+    - "DropDownList1[0].BodyPage1[0].form1[0]": ${ trial_court.name }  # Court dropdown
+    
+    # Party information (top sections)
+    - "TextField4[6].BodyPage1[0].form1[0]": ${ users[0].name.full() }  # Petitioner A name
+    - "TextField4[5].BodyPage1[0].form1[0]": ""  # Middle initial or suffix
+    - "TextField4[4].BodyPage1[0].form1[0]": ${ users[0].name.last }  # Last name separate
+    - "TextField4[11].BodyPage1[0].form1[0]": ${ other_parties[0].name.full() }  # Petitioner B name
+    - "TextField4[10].BodyPage1[0].form1[0]": ""  # Middle initial or suffix
+    - "TextField4[9].BodyPage1[0].form1[0]": ${ other_parties[0].name.last }  # Last name separate
+    
+    # Addresses
+    - "TextField4[3].BodyPage1[0].form1[0]": ${ affidavit_signer.address.on_one_line() }  # Affiant address
+    - "TextField4[7].BodyPage1[0].form1[0]": ${ affidavit_signer.address.city }  # City
+    - "TextField4[8].BodyPage1[0].form1[0]": ${ affidavit_signer.address.state }  # State
+    - "TextField4[12].BodyPage1[0].form1[0]": ${ affidavit_signer.address.zip }  # Zip
+    
+    # Statement fields
+    - "TextField4[0].BodyPage1[0].form1[0]": ${ affidavit_signer.name.full() }  # Affiant name statement
+    - "TextField4[1].BodyPage1[0].form1[0]": ${ other_parties[0].name.full() if affidavit_signer == users[0] else users[0].name.full() }  # Other party
+    - "TextField4[2].BodyPage1[0].form1[0]": ${ marriage_date.format() }  # Marriage date
+    
+    # Main affidavit text (large text box)
+    - "Multi1[0].Sub1[0].BodyPage1[0].form1[0]": "I affirm under the pains and penalties of perjury that the marriage between myself and my spouse has suffered an irretrievable breakdown, and that there is no chance for reconciliation."
+    
+    # Date signed
+    - "DateTimeField1[0].BodyPage1[0].form1[0]": ${ format_date(today(), format='MM/dd/yyyy') }
+    
+    # Signatures (blank in preview)
+    - "Signature18": ${ affidavit_signer.signature if i == 'final' else '' }  # Affiant signature
+    - "Signature19": ""  # Notary signature (left blank)
+---
+attachment:
+  name: R-408 Report of Absolute Divorce
+  filename: R408_report
+  variable name: r408_pdf
+  pdf template file: R408-FILLEDOUT.pdf
+  editable: False
+  skip undefined: True
+  fields:
+    # Based on typical R-408 structure - 34 fields
+    # Husband/Party A information
+    - "1a": ${ users[0].name.full() }  # Husband/Party A full name
+    - "1b": ${ users[0].address.city }  # Residence city
+    - "1c": ${ users[0].address.state }  # Residence state
+    - "2": ${ users[0].birthdate.format() if hasattr(users[0], 'birthdate') else '' }  # Birth date
+    - "3": ${ users[0].race }  # Race
+    - "4": ${ users[0].education_level }  # Education level
+    - "5": ${ users[0].occupation if users[0].occupation else 'N/A' }  # Occupation
+    - "6": ${ users[0].number_prior_marriages }  # Number of prior marriages
+    
+    # Wife/Party B information
+    - "8a": ${ other_parties[0].name.full() }  # Wife/Party B full name
+    - "8b": ${ other_parties[0].address.city }  # Residence city
+    - "8c": ${ other_parties[0].address.state }  # Residence state
+    - "9": ${ other_parties[0].birthdate.format() if hasattr(other_parties[0], 'birthdate') else '' }  # Birth date
+    - "10": ${ other_parties[0].race }  # Race
+    - "11": ${ other_parties[0].education_level }  # Education level
+    - "12": ${ other_parties[0].occupation if other_parties[0].occupation else 'N/A' }  # Occupation
+    - "13": ${ other_parties[0].number_prior_marriages }  # Number of prior marriages
+    
+    # Marriage information
+    - "7b": ${ marriage_date.format() }  # Date of marriage
+    - "7c": ${ marriage_place }  # Place of marriage
+    - "7d": ${ "1st" if users[0].number_prior_marriages == 0 and other_parties[0].number_prior_marriages == 0 else "2nd+" }  # Marriage order
+    
+    # Children information
+    - "14a": ${ "Yes" if has_minor_children else "No" }  # Children from this marriage
+    - "14b": ${ len(children) if has_minor_children else '0' }  # Number of children
+    - "14c": ${ comma_and_list([child.name.full() for child in children]) if has_minor_children else 'None' }  # Names of children
+    - "14d": ${ comma_and_list([child.birthdate.format() for child in children]) if has_minor_children else 'None' }  # Birth dates
+    
+    # Court and decree information
+    - "15": ${ trial_court.name }  # Court name
+    - "16a": ${ trial_court.address.city }  # Court city
+    - "16b": ${ trial_court.address.county }  # Court county
+    - "16c": ${ users[0].address.city if users[0].address.city == other_parties[0].address.city else users[0].address.city + "/" + other_parties[0].address.city }  # Residence at time of divorce
+    - "16d": ${ decree_granted_date.format() }  # Date decree granted
+    - "16e": ${ "Irretrievable breakdown" }  # Grounds for divorce
+    
+    # Attorney information
+    - "17a": ${ "Yes" if has_attorney else "No" }  # Attorney representation
+    - "17b": ${ attorney_name if has_attorney else 'N/A' }  # Attorney name
+    - "17c": ${ attorney_bbo_number if has_attorney else 'N/A' }  # Attorney BBO
+    - "17d": ${ users[0].address.on_one_line() if has_attorney else 'N/A' }  # Attorney address
+    - "17e": ${ users[0].phone_number if has_attorney else 'N/A' }  # Attorney phone
+---
+attachment:
+  name: Financial Statement - Short Form (CJD-301S)
+  filename: financial_statement_short
+  variable name: financial_short_pdf
+  pdf template file: CJD301S-FILLEDOUT.pdf
+  editable: False
+---
+attachment:
+  name: Financial Statement - Long Form (CJD-301L)
+  filename: financial_statement_long
+  variable name: financial_long_pdf
+  pdf template file: CJD301L-FILLEDOUT.pdf
+  editable: False
+---
+attachment:
+  name: Separation Agreement
+  filename: separation_agreement
+  variable name: separation_agreement_pdf
+  pdf template file: Sample Separation Agreement-FILLEDOUT.pdf
+  editable: False
+---
+attachment:
+  name: Findings and Determinations (CJD-305)
+  filename: findings_and_determinations
+  variable name: findings_pdf
+  pdf template file: CJD305-FILLEDOUT.pdf
+  editable: False
+---
+attachment:
+  name: Supplemental Child Care or Custody Disclosure Affidavit
+  filename: custody_disclosure_affidavit
+  variable name: custody_disclosure_pdf
+  pdf template file: Supplemental Child Care or Custody Disclosure Affidavit-FILLEDOUT.pdf
+  editable: False
+---
+attachment:
+  name: Affidavit of Indigency
+  filename: affidavit_of_indigency
+  variable name: indigency_pdf
+  pdf template file: jud-affidavit-of-indigency-821-FILLEDOUT.pdf
+  editable: False
+---
+id: download_screen
+event: download_screen
+question: |
+  Your divorce forms are ready
+subquestion: |
+  Your MA 1A divorce forms have been completed and are ready to download.
+  
+  ## Download Your Forms
+  
+  % if 'cjd101a' in ma1a_case.forms_needed:
+  ### Joint Petition for Divorce (CJ-D 101A)
+  
+  ${ cjd_101a_pdf }
+  % endif
+  
+  % if 'affidavit' in ma1a_case.forms_needed:
+  ### Affidavit of Irretrievable Breakdown
+  
+  ${ affidavit_pdf }
+  % endif
+  
+  % if 'r408' in ma1a_case.forms_needed:
+  ### R-408 Report of Absolute Divorce
+  
+  ${ r408_pdf }
+  % endif
+  
+  % if 'financial' in ma1a_case.forms_needed:
+  ### Financial Statements
+  
+  % if users[0].financial_form == 'short':
+  **${ users[0].name.full() }** - Short Form (CJD-301S)
+  
+  ${ financial_short_pdf }
+  
+  **Note**: This is a blank form. You'll need to fill it out with your complete financial information.
+  % else:
+  **${ users[0].name.full() }** - Long Form (CJD-301L)
+  
+  ${ financial_long_pdf }
+  
+  **Note**: This is a blank form. You'll need to fill it out with your complete financial information.
+  % endif
+  
+  % if other_parties[0].financial_form == 'short':
+  **${ other_parties[0].name.full() }** - Short Form (CJD-301S)
+  
+  ${ financial_short_pdf }
+  
+  **Note**: This is a blank form. Your spouse will need to fill it out with their complete financial information.
+  % else:
+  **${ other_parties[0].name.full() }** - Long Form (CJD-301L)
+  
+  ${ financial_long_pdf }
+  
+  **Note**: This is a blank form. Your spouse will need to fill it out with their complete financial information.
+  % endif
+  % endif
+  
+  % if 'custody_disclosure' in ma1a_case.forms_needed:
+  ### Custody Disclosure Affidavit
+  
+  ${ custody_disclosure_pdf }
+  
+  **Note**: This is a blank form. You and your spouse will need to read, sign, and have it notarized.
+  % endif
+  
+  % if 'cjd304' in ma1a_case.forms_needed:
+  ### Child Support Guidelines Worksheet
+  
+  **This form is not yet auto-generated.**
+  
+  Please [download the Child Support Guidelines Worksheet](https://www.mass.gov/info-details/child-support-guidelines-worksheet) 
+  from the Massachusetts Court System website and complete it manually.
+  
+  % endif
+  
+  % if 'findings' in ma1a_case.forms_needed:
+  ### Findings and Determinations (CJD-305)
+  
+  ${ findings_pdf }
+  
+  **Note**: This is a blank form. You'll need to fill it in with the information you provided:
+  
+  **Reasons for deviation**:
+  ${ deviation_reasons }
+  
+  **Findings requested**:
+  ${ specific_findings_requested }
+  
+  **Supporting facts**:
+  ${ supporting_facts }
+  % endif
+  
+  % if 'indigency' in ma1a_case.forms_needed:
+  ### Affidavit of Indigency
+  
+  ${ indigency_pdf }
+  
+  **Note**: This is a blank form. You'll need to fill it out with your complete financial information and sign it.
+  % endif
+  
+  % if 'separation_agreement' in ma1a_case.forms_needed:
+  ### Separation Agreement
+  
+  % if already_have_agreement:
+  **You indicated you already have a separation agreement.**
+  
+  Please ensure it's signed by both parties and notarized, then attach it when you file your divorce papers.
+  % else:
+  ${ separation_agreement_pdf }
+  
+  **Note**: This is a blank form. Use the information you provided as a guide to complete it:
+  
+  **Property Division**: ${ property_division_explanation }
+  
+  **Debts**: ${ debts_explanation }
+  
+  % if spousal_support_included:
+  **Spousal Support**: ${ currency(spousal_support_amount) }/week
+  % endif
+  
+  % if has_minor_children:
+  **Custody**: ${ custody_type }
+  
+  **Parenting Schedule**: ${ parenting_schedule_description }
+  
+  **Child Support**: ${ currency(child_support_amount_agreed) }/week
+  % endif
+  
+  **Recommendation**: Have an attorney review your separation agreement before signing.
+  % endif
+  % endif
+  
+  ---
+  
+  ## Your Information Summary
+  
+  **Court**: ${ trial_court }
+  
+  **Parties**: ${ users[0] } and ${ other_parties[0] }
+  
+  **Marriage**: ${ marriage_date } in ${ marriage_place }
+  
+  % if has_minor_children:
+  **Children**: ${ len(children) } minor child(ren)
+  % else:
+  **Children**: None
+  % endif
+  
+  **Breakdown Date**: ${ breakdown_date }
+  
+  **Agreement**: ${ "Attached" if separation_agreement_filed == "attached" else "To be filed later" } 
+  (${ "Merge" if agreement_incorporation_method == "merge" else "Survive" })
+  
+  % if users[0].name_will_change or other_parties[0].name_will_change:
+  **Name Changes Requested**: Yes
+  % endif
+  
+  ---
+  
+  ## Next Steps
+  
+  1. **Download** all forms above
+  2. **Review** each form carefully
+  3. **Print** the forms
+  4. **Sign** where indicated (some require notarization)
+  5. **File** at ${ trial_court }
+  
+  % if get_config('debug'):
+  
+  **Forms generated**: ${ ', '.join(ma1a_case.forms_needed) }
+  % endif
+buttons:
+  - Exit: exit
+  - Restart: restart
+

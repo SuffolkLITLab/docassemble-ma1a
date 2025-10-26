@@ -1,0 +1,156 @@
+---
+comment: |
+  Motion (CJD-400)
+  Generic motion form for requesting court orders during divorce process.
+---
+code: |
+  log("[motion] Starting Motion (CJD-400) logic")
+  
+  # Ask if user needs to file a motion
+  log("[motion] Asking if motion needed")
+  needs_to_file_motion
+  
+  if needs_to_file_motion:
+    log("[motion] Collecting motion details")
+    motion_type
+    relief_requested
+    facts_supporting_motion
+    emergency_relief_needed
+    log("[motion] Motion details collected")
+  else:
+    log("[motion] No motion needed")
+  
+  # Mark as complete
+  motion_complete = True
+  ma1a_case.motion_complete = True
+  log("[motion] Motion handling complete")
+---
+id: needs_to_file_motion
+question: |
+  Do you need to file a Motion?
+subquestion: |
+  A **Motion** is a formal request asking the court to do something.
+  
+  In most 1A divorces, you **don't need** to file a separate motion because everything
+  is agreed upon and included in your Joint Petition and Separation Agreement.
+  
+  You might need a motion if:
+  - You need to modify an existing order
+  - You need the court to enforce something
+  - You need emergency relief
+  - You have a specific request not covered in your divorce forms
+  
+  **Do you need to file a Motion with your divorce?**
+  
+  % if get_config('debug'):
+  
+  **Progress**: Motion check
+  % endif
+fields:
+  - no label: needs_to_file_motion
+    datatype: yesnoradio
+    help: |
+      If unsure, you probably DON'T need a motion. Most uncontested divorces
+      proceed without separate motions.
+---
+id: motion_type
+question: |
+  Type of Motion
+subquestion: |
+  What type of motion do you need to file?
+  
+  % if get_config('debug'):
+  
+  **Progress**: Motion details (1 of 4)
+  % endif
+fields:
+  - Motion type: motion_type
+    input type: radio
+    choices:
+      - Modify child support: modify_support
+      - Modify custody or visitation: modify_custody
+      - Enforce court order: enforce_order
+      - Contempt for non-compliance: contempt
+      - Temporary orders: temporary
+      - Other: other
+  
+  - Specify other type: motion_type_other
+    show if:
+      variable: motion_type
+      is: other
+---
+id: relief_requested
+question: |
+  Relief Requested
+subquestion: |
+  What **specific relief** are you asking the court to grant?
+  
+  Be clear and specific about what you want the court to do.
+  
+  % if get_config('debug'):
+  
+  **Progress**: Motion details (2 of 4)
+  % endif
+fields:
+  - Relief requested: relief_requested
+    datatype: area
+    rows: 5
+    help: |
+      Examples:
+      - "Increase child support from $X to $Y per week"
+      - "Modify visitation schedule to allow weekday visits"
+      - "Order respondent to comply with separation agreement"
+      - "Grant temporary exclusive use of marital home"
+---
+id: facts_supporting_motion
+question: |
+  Facts Supporting Your Motion
+subquestion: |
+  What are the **facts** that support your request?
+  
+  Explain the circumstances that justify granting your motion.
+  
+  % if get_config('debug'):
+  
+  **Progress**: Motion details (3 of 4)
+  % endif
+fields:
+  - Supporting facts: facts_supporting_motion
+    datatype: area
+    rows: 8
+    help: |
+      Be factual and specific. Include:
+      - What has changed since the original order
+      - Why the current situation is a problem
+      - What evidence you have to support your claim
+---
+id: emergency_relief_needed
+question: |
+  Emergency Relief
+subquestion: |
+  Does this motion require **emergency** (expedited) consideration by the court?
+  
+  Emergency motions are reserved for situations where waiting for the regular
+  court schedule would cause serious harm.
+  
+  % if get_config('debug'):
+  
+  **Progress**: Motion details (4 of 4)
+  % endif
+fields:
+  - Emergency relief needed: emergency_relief_needed
+    datatype: yesnoradio
+    help: |
+      Emergency situations might include:
+      - Immediate risk of harm to a child
+      - Imminent loss of property or assets
+      - Other urgent circumstances
+  
+  - Explain why this is an emergency: emergency_explanation
+    datatype: area
+    rows: 4
+    show if: emergency_relief_needed
+    help: |
+      Explain why this cannot wait for the regular court schedule.
+---
+

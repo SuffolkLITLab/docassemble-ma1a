@@ -1,0 +1,147 @@
+---
+comment: |
+  Shared data collection for MA1A divorce forms.
+  Collects party, marriage, children, and court information once for reuse across all forms.
+---
+include:
+  - docassemble.AssemblyLine:assembly_line.yml
+  - docassemble.MassAccess:massaccess.yml
+---
+objects:
+  - users: ALPeopleList.using(ask_number=True, target_number=1)
+  - other_parties: ALPeopleList.using(ask_number=True, target_number=1)
+  - children: ALPeopleList.using(ask_number=True, target_number=1)
+---
+code: |
+  users.gather()
+  other_parties.gather()
+  marriage_date
+  marriage_place
+  last_lived_together_date
+  last_lived_together_place
+  has_minor_children
+  if has_minor_children:
+    children.gather()
+  trial_court
+  has_attorney
+  if has_attorney:
+    attorney_name
+    attorney_bbo_number
+  shared_data_complete = True
+---
+comment: Override default AL question for spouse name
+---
+id: spouse_name
+sets:
+  - other_parties[0].name.first
+question: |
+  What is your spouse's name?
+fields:
+  - code: |
+      other_parties[0].name_fields()
+---
+comment: |
+  Marriage date question
+---
+id: marriage_date
+question: |
+  When did you get married?
+subquestion: |
+  % if get_config('debug'):
+  **Progress**: Collecting marriage information (step 2 of 4 shared data sections)
+  % endif
+fields:
+  - Date: marriage_date
+    datatype: date
+---
+comment: |
+  Marriage place question (city and state only for now)
+---
+id: marriage_place
+question: |
+  Where did you get married?
+fields:
+  - City: marriage_place_city
+  - State: marriage_place_state
+    code: states_list()
+---
+code: |
+  marriage_place = f"{marriage_place_city}, {marriage_place_state}"
+---
+comment: |
+  Last lived together date question
+---
+id: last_lived_together_date
+question: |
+  When did you last live together?
+fields:
+  - Date: last_lived_together_date
+    datatype: date
+---
+comment: |
+  Last lived together place question (city and state)
+---
+id: last_lived_together_place
+question: |
+  Where did you last live together?
+fields:
+  - City: last_lived_together_city
+  - State: last_lived_together_state
+    code: states_list()
+---
+code: |
+  last_lived_together_place = f"{last_lived_together_city}, {last_lived_together_state}"
+---
+comment: |
+  Children question
+---
+id: has_minor_children
+question: |
+  Do you have any minor children together?
+subquestion: |
+  Minor children are under age 18, or under age 23 if still in high school.
+  
+  % if get_config('debug'):
+  
+  **Progress**: Collecting children information (step 3 of 4 shared data sections)
+  % endif
+yesno: has_minor_children
+---
+comment: |
+  Court selection - pre-filtered to Probate and Family Courts
+---
+id: trial_court
+question: |
+  What court will you file in?
+subquestion: |
+  Choose the Probate and Family Court for the county where you or your spouse live.
+  
+  % if get_config('debug'):
+  
+  **Progress**: Selecting court (step 4 of 4 shared data sections)
+  % endif
+fields:
+  - no label: trial_court
+    datatype: object
+    choices: trial_court.filter_courts(None)
+---
+code: |
+  # Pre-set court department to Probate and Family Court for divorce cases
+  trial_court.department = "Probate and Family Court"
+---
+comment: |
+  Attorney information (optional)
+---
+id: has_attorney
+question: |
+  Do you have an attorney representing you?
+yesno: has_attorney
+---
+id: attorney_info
+question: |
+  What is your attorney's information?
+fields:
+  - Attorney name: attorney_name
+  - BBO number: attorney_bbo_number
+    required: False
+

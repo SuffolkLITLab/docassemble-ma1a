@@ -1,0 +1,23 @@
+[build-system]
+requires = [
+    "setuptools==80.9.0",
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "docassemble.ma1a"
+version = "0.72"
+description = "Massachusetts 1A Divorce Forms"
+readme = "README.md"
+authors = [
+    { name = "Samuel Darkwa Jr", email = "sam.darkwa@su.suffolk.edu" },
+]
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/SuffolkLITLab/docassemble-ma1a"
+
+[tool.setuptools.packages.find]
+where = [
+    ".",
+]

@@ -1,0 +1,93 @@
+---
+comment: |
+  Form selection logic for MA 1A Divorce Package
+  
+  Determines which forms the user needs based on their situation:
+  - Always required: Joint Petition, Affidavit, R-408
+  - Conditional: Custody disclosure, child support, indigency, etc.
+---
+code: |
+  log("[form_selection] Starting form selection logic")
+  
+  # Determine required forms
+  forms_needed = []
+  
+  # Always required for 1A divorce
+  forms_needed.append('cjd101a')  # Joint Petition for Divorce
+  forms_needed.append('affidavit')  # Affidavit of Irretrievable Breakdown
+  forms_needed.append('r408')  # Report of Absolute Divorce or Annulment (R-408)
+  forms_needed.append('financial')  # Financial Statements (Short or Long, determined later)
+  
+  log(f"[form_selection] Required forms: {', '.join(forms_needed)}")
+  
+  # Conditional forms based on user's situation
+  
+  # If user has minor children
+  if has_minor_children:
+    forms_needed.append('custody_disclosure')
+    forms_needed.append('cjd304')  # Child Support Guidelines Worksheet
+    log("[form_selection] Added child-related forms (custody_disclosure, cjd304)")
+    
+    # Findings & Determinations added separately (conditional on deviation)
+    # Will be determined later in interview
+  
+  # If user needs fee waiver
+  if needs_fee_waiver:
+    forms_needed.append('indigency')
+    log("[form_selection] Added indigency affidavit")
+  
+  # Separation agreement - always required, but may need drafting
+  if needs_separation_agreement_drafted:
+    forms_needed.append('separation_agreement')
+    log("[form_selection] Added separation agreement (will draft)")
+  else:
+    log("[form_selection] User already has separation agreement")
+  
+  # Store for later use
+  ma1a_case.forms_needed = forms_needed
+  
+  log(f"[form_selection] Total forms needed: {len(forms_needed)}")
+  log(f"[form_selection] Forms list: {', '.join(forms_needed)}")
+  
+  # Mark form selection as complete
+  form_selection_complete = True
+  log("[form_selection] Form selection COMPLETE ✓")
+---
+id: needs_separation_agreement_drafted
+question: |
+  Do you need help drafting your separation agreement?
+subquestion: |
+  A separation agreement is **required** for a 1A divorce. It outlines how you and your
+  spouse will handle property division, support, custody (if applicable), and other matters.
+  
+  If you and your spouse have already prepared a separation agreement, we don't need to
+  draft one. You'll attach your existing agreement when you file.
+  
+  If you haven't prepared one yet, we can help you draft it as part of this process.
+  
+  % if get_config('debug'):
+  
+  **Progress**: Determining which forms you need (1 of 2)
+  % endif
+fields:
+  - no label: needs_separation_agreement_drafted
+    datatype: radio
+    choices:
+      - We already have a separation agreement: False
+      - Please help us draft one: True
+---
+id: needs_fee_waiver
+question: |
+  Do you need help paying the court filing fees?
+subquestion: |
+  If you cannot afford the court filing fees, you can request a fee waiver
+  by filing an Affidavit of Indigency.
+  
+  The court will review your financial situation and may waive or reduce the fees.
+  
+  % if get_config('debug'):
+  
+  **Progress**: Determining which forms you need (2 of 2)
+  % endif
+yesno: needs_fee_waiver
+

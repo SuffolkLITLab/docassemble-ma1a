@@ -1,0 +1,304 @@
+---
+comment: |
+  Financial Statement module - CJD-301S (Short) / CJD-301L (Long)
+  Determines appropriate form based on income threshold ($75,000).
+  Provides blank forms with guidance for manual completion.
+---
+include:
+  - docassemble.ALToolbox:al_income.yml
+---
+objects:
+  # Financial objects for Party A
+  - users[0].income: ALIncomeList.using(auto_gather=False, object_type=ALIncome)
+  - users[0].jobs: ALJobList.using(auto_gather=False, object_type=ALJob, complete_attribute='complete')
+  - users[0].expenses: ALExpenseList.using(auto_gather=False, object_type=ALExpense)
+  - users[0].assets: ALAssetList.using(auto_gather=False, object_type=ALAsset)
+  - users[0].vehicles: ALVehicleList.using(auto_gather=False, object_type=ALVehicle)
+  
+  # Financial objects for Party B
+  - other_parties[0].income: ALIncomeList.using(auto_gather=False, object_type=ALIncome)
+  - other_parties[0].jobs: ALJobList.using(auto_gather=False, object_type=ALJob, complete_attribute='complete')
+  - other_parties[0].expenses: ALExpenseList.using(auto_gather=False, object_type=ALExpense)
+  - other_parties[0].assets: ALAssetList.using(auto_gather=False, object_type=ALAsset)
+  - other_parties[0].vehicles: ALVehicleList.using(auto_gather=False, object_type=ALVehicle)
+---
+code: |
+  # Determine which financial form each party needs based on income
+  log("[financial] Starting financial form determination")
+  
+  # Ask for gross annual income (threshold question)
+  users[0].gross_annual_income
+  other_parties[0].gross_annual_income
+  
+  # Determine form type for each party
+  if users[0].gross_annual_income < 75000:
+    users[0].financial_form = 'short'
+    log(f"[financial] Party A needs SHORT form (income: ${users[0].gross_annual_income})")
+  else:
+    users[0].financial_form = 'long'
+    log(f"[financial] Party A needs LONG form (income: ${users[0].gross_annual_income})")
+  
+  if other_parties[0].gross_annual_income < 75000:
+    other_parties[0].financial_form = 'short'
+    log(f"[financial] Party B needs SHORT form (income: ${other_parties[0].gross_annual_income})")
+  else:
+    other_parties[0].financial_form = 'long'
+    log(f"[financial] Party B needs LONG form (income: ${other_parties[0].gross_annual_income})")
+  
+  financial_form_determination_complete = True
+  log("[financial] Form determination complete")
+---
+id: financial_intro
+question: |
+  Financial Statement Form Selection
+subquestion: |
+  Massachusetts requires each spouse to file a Financial Statement. There are two versions:
+  
+  - **Short Form (CJD-301S)**: For individuals with gross annual income under $75,000
+  - **Long Form (CJD-301L)**: For individuals with gross annual income of $75,000 or more
+  
+  We'll ask about your income to determine which form each of you needs. 
+  You may need different forms based on your individual income levels.
+  
+  **Time estimate**: 20-30 minutes for Short Form, 30-45 minutes for Long Form
+  
+  % if get_config('debug'):
+  
+  **Progress**: Financial Statement threshold determination
+  % endif
+continue button field: financial_intro_shown
+---
+id: party_a_income_threshold
+question: |
+  ${ users[0].name.full() }'s Annual Income
+subquestion: |
+  What is **your** gross annual income (before taxes)?
+  
+  **Gross income includes**: salary, wages, bonuses, self-employment income, 
+  rental income, investment income, Social Security, pensions, unemployment, etc.
+  
+  **Tip**: Look at your most recent tax return (Line 9 on Form 1040) or 
+  add up 12 months of paystubs.
+  
+  % if get_config('debug'):
+  
+  **Progress**: Financial threshold (Party A)
+  % endif
+fields:
+  - Gross annual income: users[0].gross_annual_income
+    datatype: currency
+    min: 0
+    help: |
+      If unsure, provide your best estimate based on last year's tax return or recent pay stubs.
+      Include income from ALL sources (salary, bonuses, self-employment, investments, etc.).
+---
+id: party_b_income_threshold
+question: |
+  ${ other_parties[0].name.full() }'s Annual Income
+subquestion: |
+  What is **your spouse's** gross annual income (before taxes)?
+  
+  **Gross income includes**: salary, wages, bonuses, self-employment income, 
+  rental income, investment income, Social Security, pensions, unemployment, etc.
+  
+  % if get_config('debug'):
+  
+  **Progress**: Financial threshold (Party B)
+  % endif
+fields:
+  - Gross annual income: other_parties[0].gross_annual_income
+    datatype: currency
+    min: 0
+    help: |
+      If unsure, provide your best estimate. Include income from ALL sources.
+      You can leave blank and fill manually later if needed.
+---
+id: financial_form_confirmation
+question: |
+  Financial Statement Forms Needed
+subquestion: |
+  Based on the reported income:
+  
+  **${ users[0].name.full() }**: 
+  
+  - Annual Income: ${ currency(users[0].gross_annual_income) }
+  - Form Required: **${ "Short Form (CJD-301S)" if users[0].financial_form == 'short' else "Long Form (CJD-301L)" }**
+  
+  **${ other_parties[0].name.full() }**: 
+  
+  - Annual Income: ${ currency(other_parties[0].gross_annual_income) }
+  - Form Required: **${ "Short Form (CJD-301S)" if other_parties[0].financial_form == 'short' else "Long Form (CJD-301L)" }**
+  
+  ---
+  
+  % if users[0].financial_form == 'short' and other_parties[0].financial_form == 'short':
+  Both of you will complete the **Short Form** with detailed financial information.
+  % elif users[0].financial_form == 'long' and other_parties[0].financial_form == 'long':
+  Both of you will complete the **Long Form** with very detailed financial information.
+  % else:
+  You'll each complete different forms based on your income levels.
+  % endif
+  
+  **Time estimate**: 
+  ${ "20-30 minutes" if users[0].financial_form == 'short' and other_parties[0].financial_form == 'short' else "30-45 minutes" }
+  
+  % if get_config('debug'):
+  
+  **Progress**: Financial form confirmation
+  % endif
+continue button field: financial_form_confirmation_shown
+---
+comment: |
+  SIMPLIFIED IMPLEMENTATION FOR MVP
+  
+  For v0.65/v0.66 MVP, we provide acknowledgment screens and blank PDFs.
+  Users will need to complete financial statements manually.
+  
+  Full ALToolbox integration (income/expense/asset collection with period conversion)
+  
+  This approach:
+  - Still provides working forms
+  - Educates users about what's needed
+  - Allows them to proceed with their divorce
+  - Can be enhanced later with full data collection
+---
+id: financial_statement_acknowledgment
+question: |
+  % if users[0].financial_form == 'short' or other_parties[0].financial_form == 'short':
+  Financial Statement - Short Form (CJD-301S)
+  % else:
+  Financial Statement - Long Form (CJD-301L)
+  % endif
+subquestion: |
+  The Massachusetts Financial Statement is a comprehensive document that provides the court
+  with a complete picture of your financial situation. This information helps the court make
+  fair decisions about property division, support, and other financial matters.
+  
+  ## Why This Matters
+  
+  - **Required by law**: MA courts require financial statements in all divorce cases
+  - **Under oath**: You'll sign under penalties of perjury, so accuracy is critical
+  - **Discovery**: Your spouse will see this, so complete honesty is essential
+  - **Court decisions**: Judges use this to determine support, property division, and fees
+  
+  ---
+  
+  ## What You'll Need to Provide
+  
+  ### Income Information
+  - Employment details (employer, position, salary)
+  - Other income sources (self-employment, rental, investments, benefits)
+  - Pay frequency and amounts
+  
+  ### Assets
+  - Real estate (address, value, mortgage balance)
+  - Vehicles (make, model, year, value, loan balance)
+  - Bank accounts (institution, type, balance)
+  - Retirement accounts (type, balance)
+  - Other assets (stocks, bonds, business interests)
+  
+  ### Liabilities (Debts)
+  - Credit cards (creditor, balance)
+  - Loans (type, creditor, balance)
+  - Other debts
+  
+  ### Weekly Expenses
+  - Housing (rent/mortgage)
+  - Utilities
+  - Food and groceries
+  - Transportation
+  - Insurance
+  - Medical expenses
+  - And more...
+  
+  ---
+  
+  ## Your Forms
+  
+  % if users[0].financial_form == 'short':
+  - **${ users[0].name.full() }**: Short Form (CJD-301S) - 170 fields
+  % else:
+  - **${ users[0].name.full() }**: Long Form (CJD-301L) - 492 fields
+  % endif
+  
+  % if other_parties[0].financial_form == 'short':
+  - **${ other_parties[0].name.full() }**: Short Form (CJD-301S) - 170 fields
+  % else:
+  - **${ other_parties[0].name.full() }**: Long Form (CJD-301L) - 492 fields
+  % endif
+  
+  ---
+  
+  ## Helpful Tips for Completing Your Financial Statement
+  
+  **Gather These Documents First**
+  
+  - Recent pay stubs (last 3 months)
+  - Tax returns (last 2 years)
+  - Bank statements (all accounts, last 3 months)
+  - Credit card statements
+  - Mortgage statements or lease agreement
+  - Vehicle registration and loan documents
+  - Retirement account statements
+  - Investment account statements
+  
+  **Common Mistakes to Avoid**
+  
+  - **Forgetting income sources** - Include bonuses, side gigs, gifts, unemployment, Social Security
+  - **Underestimating expenses** - Track spending for a full month first
+  - **Not including all assets** - List assets in spouse's name too
+  - **Forgetting debts** - Include medical bills, student loans, personal loans
+  - **Rounding too much** - Be specific with numbers (use actual amounts)
+  
+  **Weekly vs. Monthly Conversion**
+  
+  Massachusetts forms ask for **weekly** amounts for income and expenses. Here's how to convert:
+  
+  - **Monthly to weekly**: Divide by 4.33
+  - **Bi-weekly to weekly**: Multiply by 26, then divide by 52
+  - **Annual to weekly**: Divide by 52
+  
+  **Example**: If you earn $4,000/month → $4,000 ÷ 4.33 = $924/week
+  
+  ---
+  
+  ## Getting Help
+  
+  - **Official guide**: [MA 1A Divorce Guide](https://www.mass.gov/guides/get-a-no-fault-1a-divorce)
+  - **Court assistance**: [Find Your Probate & Family Court](https://www.mass.gov/orgs/probate-and-family-court)
+  - **Legal help**: [Massachusetts Legal Services](https://www.masslegalservices.org)
+  - **Local resources**: Many law libraries offer free form assistance
+  
+  ---
+  
+  **We'll include blank Financial Statement form(s) with your packet. 
+  You'll need to fill them out completely before filing.**
+  
+  Some information cannot be auto-filled and must be completed manually.
+  
+  % if get_config('debug'):
+  
+  **Progress**: Financial statement acknowledgment
+  % endif
+continue button field: financial_statements_acknowledged
+---
+code: |
+  log("[financial] Starting financial data collection logic")
+  
+  # Show intro
+  financial_intro_shown
+  
+  # Determine forms needed (already done above)
+  financial_form_determination_complete
+  
+  # Show confirmation
+  financial_form_confirmation_shown
+  
+  # Show acknowledgment about manual completion
+  financial_statements_acknowledged
+  
+  # Mark as complete
+  financial_statements_complete = True
+  log("[financial] Financial statements marked complete (manual completion required)")
+---
+

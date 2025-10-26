@@ -1,0 +1,150 @@
+---
+comment: |
+  Joint Petition for Divorce (CJ-D 101A)
+  Form-specific questions not covered by shared data collection.
+---
+code: |
+  grounds_for_divorce = "Irretrievable breakdown of the marriage"
+---
+code: |
+  breakdown_date = last_lived_together_date
+---
+id: previous_actions
+question: |
+  Previous court actions
+subquestion: |
+  Have either of you previously filed for divorce, annulment, separate support,
+  or custody involving each other?
+  
+  % if get_config('debug'):
+  
+  **Progress**: Joint Petition questions (1 of 4)
+  % endif
+yesno: has_previous_actions
+---
+id: previous_actions_details
+question: |
+  Previous court action details
+subquestion: |
+  Please provide information about the previous case(s).
+fields:
+  - Court: previous_action_court
+    help: Which court handled the case?
+  - Docket number: previous_action_docket
+    required: False
+    help: Case number, if known
+  - Type of case: previous_action_type
+    choices:
+      - Divorce
+      - Annulment
+      - Separate support
+      - Custody
+      - Other
+  - Outcome: previous_action_outcome
+    datatype: area
+    rows: 3
+    help: What happened with this case? (e.g., dismissed, withdrawn, still pending)
+---
+code: |
+  if has_previous_actions:
+    previous_action_details = f"{previous_action_type} in {previous_action_court}, Docket: {previous_action_docket or 'unknown'}, Outcome: {previous_action_outcome}"
+  else:
+    previous_action_details = "None"
+---
+id: name_change_party_a
+question: |
+  Will ${ users[0].name.full() } change their name as part of this divorce?
+subquestion: |
+  % if get_config('debug'):
+  **Progress**: Joint Petition questions (2 of 4)
+  % endif
+yesno: users[0].name_will_change
+---
+id: new_name_party_a
+question: |
+  What will ${ users[0].name.full() }'s new name be?
+fields:
+  - New name: users[0].new_name_after_divorce
+---
+id: name_change_party_b
+question: |
+  Will ${ other_parties[0].name.full() } change their name as part of this divorce?
+yesno: other_parties[0].name_will_change
+---
+id: new_name_party_b
+question: |
+  What will ${ other_parties[0].name.full() }'s new name be?
+fields:
+  - New name: other_parties[0].new_name_after_divorce
+---
+id: separation_agreement_status
+question: |
+  Separation Agreement
+subquestion: |
+  How should your separation agreement be handled?
+  
+  % if get_config('debug'):
+  
+  **Progress**: Joint Petition questions (4 of 4)
+  % endif
+fields:
+  - Agreement status: separation_agreement_filed
+    datatype: radio
+    choices:
+      - Attached with this petition: attached
+      - Will be filed later: later
+  - How should the agreement be incorporated?: agreement_incorporation_method
+    datatype: radio
+    choices:
+      - Incorporate and merge (becomes part of divorce judgment): merge
+      - Incorporate but not merge (survives as independent contract): survive
+    help: |
+      **Merge**: The agreement becomes part of the divorce judgment. 
+      Court can modify terms later if circumstances change.
+      
+      **Survive**: The agreement remains a separate contract between you.
+      Generally cannot be modified by the court.
+---
+comment: |
+  Data collection flow for CJD-101A specific questions
+---
+code: |
+  log("[cjd101a] Starting Joint Petition data collection")
+  
+  # Grounds and breakdown date (auto-set)
+  log(f"[cjd101a] Grounds: {grounds_for_divorce}")
+  log(f"[cjd101a] Breakdown date: {breakdown_date}")
+  
+  # Previous court actions
+  log("[cjd101a] Asking about previous court actions")
+  has_previous_actions
+  if has_previous_actions:
+    previous_action_court
+    previous_action_type
+    previous_action_outcome
+    log(f"[cjd101a] Previous action recorded: {previous_action_type}")
+  else:
+    log("[cjd101a] No previous actions")
+  
+  # Name changes for both parties
+  log("[cjd101a] Asking about name changes")
+  users[0].name_will_change
+  if users[0].name_will_change:
+    users[0].new_name_after_divorce
+    log(f"[cjd101a] Party A name change to: {users[0].new_name_after_divorce}")
+  
+  other_parties[0].name_will_change
+  if other_parties[0].name_will_change:
+    other_parties[0].new_name_after_divorce
+    log(f"[cjd101a] Party B name change to: {other_parties[0].new_name_after_divorce}")
+  
+  # Separation agreement
+  log("[cjd101a] Asking about separation agreement")
+  separation_agreement_filed
+  agreement_incorporation_method
+  log(f"[cjd101a] Agreement: {separation_agreement_filed}, {agreement_incorporation_method}")
+  
+  # Mark CJD-101A as complete
+  cjd101a_complete = True
+  log("[cjd101a] Joint Petition data collection COMPLETE ✓")
+

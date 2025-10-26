@@ -1,0 +1,125 @@
+---
+comment: |
+  Findings and Determinations (CJD-305)
+  Used when deviating from Massachusetts Child Support Guidelines.
+---
+code: |
+  log("[findings] Starting Findings & Determinations data collection")
+  
+  # Ask if deviating from guidelines
+  log("[findings] Asking about deviation from guidelines")
+  deviating_from_guidelines
+  
+  if deviating_from_guidelines:
+    # Collect deviation information
+    log("[findings] Collecting deviation reasons")
+    deviation_reasons
+    specific_findings_requested
+    supporting_facts
+    log("[findings] Deviation information collected")
+  else:
+    log("[findings] Not deviating - form not needed")
+  
+  # Mark as complete
+  findings_complete = True
+  ma1a_case.findings_complete = True
+  log("[findings] Findings & Determinations complete")
+---
+id: deviating_from_guidelines
+question: |
+  Child Support Guidelines Deviation
+subquestion: |
+  Massachusetts has standard **Child Support Guidelines** that determine
+  the amount of child support based on income and other factors.
+  
+  In most cases, couples follow these guidelines exactly.
+  
+  However, you can **deviate** (differ) from the guidelines if you have good reasons,
+  such as:
+  
+  - Extraordinary medical or educational expenses
+  - Significant differences in parenting time from the standard
+  - High income that makes guideline amount inappropriate
+  - Other special circumstances
+  
+  **Are you and your spouse planning to deviate from the Massachusetts Child Support Guidelines?**
+  
+  % if get_config('debug'):
+  
+  **Progress**: Findings & Determinations - deviation check
+  % endif
+fields:
+  - no label: deviating_from_guidelines
+    datatype: yesnoradio
+    help: |
+      If you're unsure, you're probably NOT deviating. Most couples follow
+      the guidelines exactly.
+---
+id: deviation_reasons
+question: |
+  Reasons for Deviating from Guidelines
+subquestion: |
+  Please explain **why** you and your spouse believe it's appropriate to deviate
+  from the standard child support calculation.
+  
+  **Be specific** - the court needs to understand your reasoning.
+  
+  % if get_config('debug'):
+  
+  **Progress**: Findings & Determinations - reasons (1 of 3)
+  % endif
+fields:
+  - Reasons for deviation: deviation_reasons
+    datatype: area
+    rows: 6
+    help: |
+      Examples:
+      - "Child has special medical needs requiring $X/month in uncovered expenses"
+      - "Parenting time is 50/50, not the presumed schedule"
+      - "Combined income exceeds guidelines, and guideline amount is more than necessary"
+---
+id: specific_findings_requested
+question: |
+  Specific Findings You're Requesting
+subquestion: |
+  What specific **findings** do you want the court to make?
+  
+  These are the factual determinations that support your deviation.
+  
+  % if get_config('debug'):
+  
+  **Progress**: Findings & Determinations - findings (2 of 3)
+  % endif
+fields:
+  - Findings requested: specific_findings_requested
+    datatype: area
+    rows: 6
+    help: |
+      Examples:
+      - "That the child's monthly medical expenses average $X"
+      - "That each parent has the child for X overnights per year"
+      - "That the guideline amount of $X per week exceeds the reasonable needs of the child"
+---
+id: supporting_facts
+question: |
+  Supporting Facts and Documentation
+subquestion: |
+  What **facts** support your request for a deviation?
+  
+  List any evidence or documentation you'll provide to the court.
+  
+  % if get_config('debug'):
+  
+  **Progress**: Findings & Determinations - supporting facts (3 of 3)
+  % endif
+fields:
+  - Supporting facts: supporting_facts
+    datatype: area
+    rows: 6
+    help: |
+      Examples:
+      - "Medical bills attached showing $X in monthly expenses"
+      - "Parenting schedule attached showing equal time"
+      - "Financial statements show combined income of $X"
+---
+

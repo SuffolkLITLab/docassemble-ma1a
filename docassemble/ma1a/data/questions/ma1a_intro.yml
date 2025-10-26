@@ -1,0 +1,87 @@
+---
+comment: Welcome screen for MA1A divorce forms package
+---
+id: ma1a_custom_intro
+question: |
+  Massachusetts 1A Divorce Forms Package
+subquestion: |
+  This interview helps you prepare **all required forms** for an **uncontested divorce** 
+  under Massachusetts General Laws Chapter 208, Section 1A (also called a "1A divorce").
+  
+  ## What is a 1A divorce?
+  
+  A 1A divorce is available when:
+  
+  - Both spouses agree the marriage has broken down irretrievably
+  - You've reached agreement on all issues (custody, support, property)
+  - You're filing together as joint petitioners
+  
+  Learn more: [MA 1A Divorce Guide](https://www.mass.gov/guides/get-a-no-fault-1a-divorce)
+  
+  ---
+  
+  ## What you'll need to provide
+  
+  Have this information ready:
+  
+  **Basic Information**
+  - Full names, addresses, and contact details for both spouses
+  - Marriage details (date, place, when you last lived together)
+  - Children information (names, birthdates of any minor children)
+  - Court selection (county where you or your spouse live)
+  
+  **Additional Information (if applicable)**
+  - Prior court cases between you and your spouse
+  - Income information (for financial statements)
+  - Property and debt details (for separation agreement)
+  - Attorney information (if represented)
+  
+  ---
+  
+  ## Forms this interview creates
+  
+  Based on your situation, we'll generate the appropriate forms:
+  
+  **Always Required**
+  - Joint Petition for Divorce (CJ-D 101A) - Auto-filled
+  - Affidavit of Irretrievable Breakdown - Auto-filled
+  - Report of Absolute Divorce (R-408) - Auto-filled
+  - Financial Statements (Short or Long) - Guidance + blank forms
+  
+  **If You Have Children**
+  - Custody Disclosure Affidavit - Provided with instructions
+  - Child Support Guidelines Worksheet - External link + guidance
+  
+  **If Needed**
+  - Separation Agreement - Upload existing or guided drafting
+  - Findings & Determinations - If deviating from child support guidelines
+  - Affidavit of Indigency - If requesting fee waiver
+  - Motion (CJD-400) - If filing a specific motion
+  
+  ---
+  
+  ## Time estimate
+  
+  **30-45 minutes** depending on your situation:
+  
+  - Simple divorce (no children): 20-25 minutes
+  - With children: 30-35 minutes
+  - Complex (all forms): 40-50 minutes
+  
+  ---
+  
+  ## What happens next
+  
+  1. **Answer questions** - We'll ask only what's needed for your situation
+  2. **Review your answers** - Check everything before generating forms
+  3. **Download forms** - Get PDFs ready to print and file
+  4. **File at court** - Instructions provided for next steps
+  
+  ---
+  
+  % if get_config('debug'):
+  **Progress**: ${ progress_message }
+  % endif
+  
+  **Ready to begin?** Click **Continue** to start.
+continue button field: ma1a_custom_intro

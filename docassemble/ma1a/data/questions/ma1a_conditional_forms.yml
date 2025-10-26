@@ -1,0 +1,95 @@
+---
+comment: Conditional forms - custody disclosure, indigency, child support
+---
+id: custody_disclosure_acknowledgment
+question: |
+  Custody Disclosure Affidavit
+subquestion: |
+  Massachusetts law requires you to file a **Supplemental Child Care or Custody Disclosure Affidavit**
+  when there are minor children involved in a divorce.
+  
+  This form is a one-page affidavit that you and your spouse will need to sign,
+  confirming you've disclosed all relevant custody and care information.
+  
+  We'll include this form with your packet. You'll need to:
+  1. Read it carefully
+  2. Sign it in front of a notary
+  3. Have your spouse sign it as well
+  
+  % if get_config('debug'):
+  
+  **Progress**: Custody Disclosure Affidavit
+  % endif
+continue button field: custody_disclosure_complete
+---
+code: |
+  log("[custody_disclosure] Custody Disclosure acknowledgment shown")
+  ma1a_case.custody_disclosure_complete = True
+  log("[custody_disclosure] Custody Disclosure marked complete")
+---
+id: child_support_acknowledgment
+question: |
+  Child Support Guidelines Worksheet
+subquestion: |
+  Massachusetts requires a **Child Support Guidelines Worksheet** when there are minor children.
+  
+  This worksheet calculates child support based on:
+  - Both parents' gross weekly income
+  - Health insurance costs
+  - Childcare costs
+  - Number of children
+  - Parenting time schedule
+  
+  **For this version**, you'll need to:
+  
+  1. Download the Child Support Guidelines Worksheet from the [Massachusetts Court System website](https://www.mass.gov/info-details/child-support-guidelines-worksheet)
+  2. Complete it following the instructions
+  3. Include it with your divorce filing
+  
+  
+  % if get_config('debug'):
+  
+  **Progress**: Child Support Worksheet acknowledgment
+  % endif
+continue button field: cjd304_complete
+---
+code: |
+  log("[cjd304] Child Support acknowledgment shown")
+  ma1a_case.cjd304_complete = True
+  log("[cjd304] Child Support marked complete")
+---
+id: indigency_acknowledgment
+question: |
+  Affidavit of Indigency
+subquestion: |
+  You've indicated you need help with court filing fees. Massachusetts provides a
+  **fee waiver** process for those who cannot afford to pay.
+  
+  To request a fee waiver, you'll need to file an **Affidavit of Indigency** (Form JD-CL-009).
+  
+  This form requires you to provide detailed financial information, including:
+  - Income from all sources
+  - Assets (bank accounts, property, vehicles)
+  - Monthly expenses
+  - Public benefits you receive
+  
+  We'll include this form with your packet. You'll need to:
+  1. Fill it out completely and accurately
+  2. Sign it under the penalties of perjury
+  3. File it with your other divorce forms
+  
+  The court will review your financial situation and decide whether to waive or reduce the filing fees.
+  
+  % if get_config('debug'):
+  
+  **Progress**: Affidavit of Indigency
+  % endif
+continue button field: indigency_complete
+---
+code: |
+  log("[indigency] Indigency acknowledgment shown")
+  ma1a_case.indigency_complete = True
+  log("[indigency] Indigency marked complete")
+---
+comment: Separation agreement logic in ma1a_separation_agreement.yml
+

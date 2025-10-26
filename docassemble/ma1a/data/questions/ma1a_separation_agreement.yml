@@ -1,0 +1,380 @@
+---
+comment: |
+  Separation Agreement
+  Allows upload of existing agreement or collects key information for drafting.
+---
+code: |
+  log("[sep_agreement] Starting separation agreement handling")
+  
+  # Check if already have agreement
+  log("[sep_agreement] Asking about existing agreement")
+  already_have_agreement
+  
+  if already_have_agreement:
+    log("[sep_agreement] User has existing agreement")
+    agreement_file_upload
+  else:
+    log("[sep_agreement] User needs help drafting agreement")
+    # Collect key information to help with drafting
+    property_division_method
+    if has_real_estate:
+      real_estate_disposition
+    if has_retirement_accounts:
+      retirement_accounts_disposition
+    debts_allocation_method
+    spousal_support_included
+    if spousal_support_included:
+      spousal_support_amount
+      spousal_support_duration
+    if has_minor_children:
+      custody_type
+      parenting_schedule_description
+      child_support_amount_agreed
+    other_provisions
+  
+  # Mark as complete
+  separation_agreement_complete = True
+  ma1a_case.separation_agreement_complete = True
+  log("[sep_agreement] Separation agreement handling complete")
+---
+id: already_have_agreement
+question: |
+  Separation Agreement Status
+subquestion: |
+  A **Separation Agreement** is required for a 1A divorce. This is a legal contract
+  between you and your spouse that covers:
+  
+  - Division of property and assets
+  - Allocation of debts
+  - Spousal support (if any)
+  - Child custody and parenting time (if applicable)
+  - Child support (if applicable)
+  - Other matters you want to agree on
+  
+  **Do you already have a drafted separation agreement?**
+  
+  % if get_config('debug'):
+  
+  **Progress**: Separation Agreement status check
+  % endif
+fields:
+  - no label: already_have_agreement
+    datatype: yesnoradio
+    help: |
+      Many couples work with an attorney or mediator to draft their separation
+      agreement before filing for divorce.
+---
+id: agreement_file_upload
+question: |
+  Upload Your Separation Agreement
+subquestion: |
+  Please upload your existing separation agreement.
+  
+  **Requirements**:
+  - Must be signed by both parties
+  - Should be notarized (if required by your agreement)
+  - Include all required provisions
+  
+  % if get_config('debug'):
+  
+  **Progress**: Separation Agreement upload
+  % endif
+fields:
+  - Upload agreement: agreement_file_upload
+    datatype: file
+    accept: |
+      "application/pdf"
+    help: |
+      Upload a PDF copy of your signed agreement.
+---
+id: property_division_method
+question: |
+  Property Division Method
+subquestion: |
+  How are you and your spouse dividing your property and assets?
+  
+  % if get_config('debug'):
+  
+  **Progress**: Separation Agreement - property division (1 of ${  "8" if has_minor_children else "6" })
+  % endif
+fields:
+  - Division method: property_division_method
+    input type: radio
+    choices:
+      - Equal split (50/50): equal
+      - Proportional based on contribution: proportional
+      - One party keeps most/all assets: one_party
+      - Custom arrangement: custom
+  - Explain your arrangement: property_division_explanation
+    datatype: area
+    rows: 4
+    help: |
+      Describe how you're dividing major assets like house, vehicles,
+      bank accounts, retirement accounts, etc.
+---
+id: has_real_estate
+question: |
+  Real Estate Ownership
+subquestion: |
+  Do you or your spouse own any real estate together (house, condo, land)?
+  
+  % if get_config('debug'):
+  
+  **Progress**: Separation Agreement - real estate
+  % endif
+yesno: has_real_estate
+---
+id: real_estate_disposition
+question: |
+  Real Estate Disposition
+subquestion: |
+  How are you handling the real estate you own together?
+  
+  % if get_config('debug'):
+  
+  **Progress**: Separation Agreement - real estate details
+  % endif
+fields:
+  - What will happen to the real estate?: real_estate_disposition
+    input type: radio
+    choices:
+      - One party will keep it (buyout): buyout
+      - Sell it and split proceeds: sell_and_split
+      - Continue to own jointly: continue_joint
+      - Other arrangement: other
+  - Explain the arrangement: real_estate_explanation
+    datatype: area
+    rows: 3
+---
+id: has_retirement_accounts
+question: |
+  Retirement Accounts
+subquestion: |
+  Do either of you have retirement accounts (401k, IRA, pension, etc.)?
+  
+  % if get_config('debug'):
+  
+  **Progress**: Separation Agreement - retirement
+  % endif
+yesno: has_retirement_accounts
+---
+id: retirement_accounts_disposition
+question: |
+  Retirement Accounts Disposition
+subquestion: |
+  How are you dividing retirement accounts?
+  
+  % if get_config('debug'):
+  
+  **Progress**: Separation Agreement - retirement details
+  % endif
+fields:
+  - Retirement division: retirement_accounts_disposition
+    input type: radio
+    choices:
+      - Each keeps their own account: each_keeps_own
+      - Split accounts proportionally: split_proportional
+      - QDRO (Qualified Domestic Relations Order) needed: qdro
+      - Other arrangement: other
+  - Explain: retirement_explanation
+    datatype: area
+    rows: 3
+    show if:
+      variable: retirement_accounts_disposition
+      is: other
+---
+id: debts_allocation_method
+question: |
+  Debt Allocation
+subquestion: |
+  How are you handling debts (credit cards, loans, mortgages)?
+  
+  % if get_config('debug'):
+  
+  **Progress**: Separation Agreement - debts (2 of ${ "8" if has_minor_children else "6" })
+  % endif
+fields:
+  - Debt allocation: debts_allocation_method
+    input type: radio
+    choices:
+      - Each responsible for own debts: own_debts
+      - Split joint debts equally: split_equal
+      - One party assumes most/all debts: one_assumes
+      - Custom arrangement: custom
+  - Explain debt allocation: debts_explanation
+    datatype: area
+    rows: 3
+---
+id: spousal_support_included
+question: |
+  Spousal Support (Alimony)
+subquestion: |
+  Will either spouse pay alimony/spousal support to the other?
+  
+  % if get_config('debug'):
+  
+  **Progress**: Separation Agreement - spousal support (3 of ${ "8" if has_minor_children else "6" })
+  % endif
+yesno: spousal_support_included
+---
+id: spousal_support_amount
+question: |
+  Spousal Support Amount
+subquestion: |
+  How much will be paid in spousal support?
+  
+  % if get_config('debug'):
+  
+  **Progress**: Separation Agreement - support amount
+  % endif
+fields:
+  - Who will pay?: spousal_support_payor
+    choices:
+      - ${ users[0].name.full() }: party_a
+      - ${ other_parties[0].name.full() }: party_b
+  
+  - Amount per week: spousal_support_amount
+    datatype: currency
+    help: Enter the weekly amount
+---
+id: spousal_support_duration
+question: |
+  Spousal Support Duration
+subquestion: |
+  How long will spousal support be paid?
+  
+  % if get_config('debug'):
+  
+  **Progress**: Separation Agreement - support duration
+  % endif
+fields:
+  - Duration: spousal_support_duration
+    input type: radio
+    choices:
+      - Until a specific date: until_date
+      - For a certain number of years: years
+      - Until remarriage or death: remarriage_death
+      - Indefinite/subject to modification: indefinite
+  
+  - End date: spousal_support_end_date
+    datatype: date
+    show if:
+      variable: spousal_support_duration
+      is: until_date
+  
+  - Number of years: spousal_support_years
+    datatype: integer
+    show if:
+      variable: spousal_support_duration
+      is: years
+---
+id: custody_type
+question: |
+  Child Custody Arrangement
+subquestion: |
+  What type of custody arrangement have you agreed to?
+  
+  % if get_config('debug'):
+  
+  **Progress**: Separation Agreement - custody (4 of 8)
+  % endif
+fields:
+  - Custody type: custody_type
+    input type: radio
+    choices:
+      - Shared legal custody (both parents make decisions): shared_legal
+      - Sole legal custody: sole_legal
+      - Joint physical custody (roughly equal time): joint_physical
+      - Primary physical custody with visitation: primary_with_visitation
+  
+  - Who has sole custody?: sole_custody_parent
+    show if:
+      variable: custody_type
+      is: sole_legal
+    choices:
+      - ${ users[0].name.full() }: party_a
+      - ${ other_parties[0].name.full() }: party_b
+  
+  - Who has primary custody?: primary_custody_parent
+    show if:
+      variable: custody_type
+      is: primary_with_visitation
+    choices:
+      - ${ users[0].name.full() }: party_a
+      - ${ other_parties[0].name.full() }: party_b
+---
+id: parenting_schedule_description
+question: |
+  Parenting Schedule
+subquestion: |
+  Describe your parenting time schedule.
+  
+  Include:
+  - Regular weekly schedule
+  - Weekend arrangements
+  - Holiday schedule
+  - Summer vacation
+  
+  % if get_config('debug'):
+  
+  **Progress**: Separation Agreement - parenting schedule (5 of 8)
+  % endif
+fields:
+  - Parenting schedule: parenting_schedule_description
+    datatype: area
+    rows: 6
+    help: |
+      Be as specific as possible. Example:
+      "Week A: Monday-Wednesday with Mother, Thursday-Sunday with Father.
+      Week B: Opposite schedule. Holidays alternate annually."
+---
+id: child_support_amount_agreed
+question: |
+  Child Support Amount
+subquestion: |
+  How much child support have you agreed to?
+  
+  % if get_config('debug'):
+  
+  **Progress**: Separation Agreement - child support (6 of 8)
+  % endif
+fields:
+  - Who will pay child support?: child_support_payor
+    choices:
+      - ${ users[0].name.full() }: party_a
+      - ${ other_parties[0].name.full() }: party_b
+  
+  - Amount per week: child_support_amount_agreed
+    datatype: currency
+  
+  - Does this follow MA guidelines?: follows_guidelines
+    datatype: yesnoradio
+    help: |
+      If deviating from guidelines, you'll need the Findings & Determinations form.
+---
+id: other_provisions
+question: |
+  Other Provisions
+subquestion: |
+  Are there any other important provisions in your separation agreement?
+  
+  For example:
+  - Life insurance requirements
+  - Health insurance coverage
+  - Tax filing status and exemptions
+  - Education expenses
+  - Dispute resolution methods
+  
+  % if get_config('debug'):
+  
+  **Progress**: Separation Agreement - other provisions (${ "8 of 8" if has_minor_children else "6 of 6" })
+  % endif
+fields:
+  - Other provisions: other_provisions
+    datatype: area
+    rows: 5
+    required: False
+    help: |
+      List any additional agreements you've made that should be included.
+---
+

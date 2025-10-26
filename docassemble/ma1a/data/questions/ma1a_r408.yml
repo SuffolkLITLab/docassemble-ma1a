@@ -1,0 +1,168 @@
+---
+comment: |
+  R-408 Report of Absolute Divorce or Annulment
+  
+  This form collects demographic and statistical information about the divorce
+  for the Massachusetts Registry of Vital Records and Statistics.
+  
+  Most data is reused from shared data. This module only collects:
+  - Race/ethnicity
+  - Education level
+  - Occupation
+  - Number of prior marriages
+  - Decree date information
+---
+code: |
+  log("[r408] Starting R-408 Report data collection")
+  
+  # Collect demographic info for Party A
+  log("[r408] Collecting Party A demographics")
+  users[0].race
+  users[0].education_level
+  users[0].occupation
+  users[0].number_prior_marriages
+  log(f"[r408] Party A: race={users[0].race}, edu={users[0].education_level}, occ={users[0].occupation}, prior={users[0].number_prior_marriages}")
+  
+  # Collect demographic info for Party B
+  log("[r408] Collecting Party B demographics")
+  other_parties[0].race
+  other_parties[0].education_level
+  other_parties[0].occupation
+  other_parties[0].number_prior_marriages
+  log(f"[r408] Party B: race={other_parties[0].race}, edu={other_parties[0].education_level}, occ={other_parties[0].occupation}, prior={other_parties[0].number_prior_marriages}")
+  
+  # Decree date information
+  log("[r408] Collecting decree date")
+  decree_granted_date
+  log(f"[r408] Decree granted: {decree_granted_date}")
+  
+  # Mark R-408 as complete
+  r408_complete = True
+  log("[r408] R-408 Report data collection COMPLETE ✓")
+---
+id: party_a_demographics
+question: |
+  Demographic information for ${ users[0].name.full() }
+subquestion: |
+  The court needs this information for statistical reporting to the state.
+  
+  % if get_config('debug'):
+  
+  **Progress**: R-408 Report (1 of 3 sections)
+  % endif
+fields:
+  - Race/Ethnicity: users[0].race
+    choices:
+      - White: White
+      - Black or African American: Black
+      - Asian: Asian
+      - American Indian or Alaska Native: Native American
+      - Native Hawaiian or Other Pacific Islander: Pacific Islander
+      - Hispanic or Latino: Hispanic
+      - Two or More Races: Multiracial
+      - Other: Other
+      - Prefer not to answer: Decline
+    help: |
+      This information is used for statistical purposes only and does not
+      affect your case.
+  
+  - Highest level of education completed: users[0].education_level
+    choices:
+      - Less than high school: Less than HS
+      - High school diploma or GED: HS/GED
+      - Some college: Some college
+      - Associate's degree: Associate
+      - Bachelor's degree: Bachelor
+      - Master's degree: Master
+      - Doctoral or professional degree: Doctoral
+    help: |
+      Select the highest educational level you have completed.
+  
+  - Current occupation: users[0].occupation
+    required: False
+    help: |
+      Your current job or profession. Leave blank if unemployed or retired.
+  
+  - How many times were you previously married?: users[0].number_prior_marriages
+    datatype: integer
+    default: 0
+    min: 0
+    max: 10
+    help: |
+      Enter the number of times you were married BEFORE this marriage.
+      Enter 0 if this was your first marriage.
+---
+id: party_b_demographics
+question: |
+  Demographic information for ${ other_parties[0].name.full() }
+subquestion: |
+  The court needs this information for statistical reporting to the state.
+  
+  % if get_config('debug'):
+  
+  **Progress**: R-408 Report (2 of 3 sections)
+  % endif
+fields:
+  - Race/Ethnicity: other_parties[0].race
+    choices:
+      - White: White
+      - Black or African American: Black
+      - Asian: Asian
+      - American Indian or Alaska Native: Native American
+      - Native Hawaiian or Other Pacific Islander: Pacific Islander
+      - Hispanic or Latino: Hispanic
+      - Two or More Races: Multiracial
+      - Other: Other
+      - Prefer not to answer: Decline
+    help: |
+      This information is used for statistical purposes only and does not
+      affect your case.
+  
+  - Highest level of education completed: other_parties[0].education_level
+    choices:
+      - Less than high school: Less than HS
+      - High school diploma or GED: HS/GED
+      - Some college: Some college
+      - Associate's degree: Associate
+      - Bachelor's degree: Bachelor
+      - Master's degree: Master
+      - Doctoral or professional degree: Doctoral
+    help: |
+      Select the highest educational level your spouse has completed.
+  
+  - Current occupation: other_parties[0].occupation
+    required: False
+    help: |
+      Their current job or profession. Leave blank if unemployed or retired.
+  
+  - How many times were they previously married?: other_parties[0].number_prior_marriages
+    datatype: integer
+    default: 0
+    min: 0
+    max: 10
+    help: |
+      Enter the number of times your spouse was married BEFORE this marriage.
+      Enter 0 if this was their first marriage.
+---
+id: decree_date
+question: |
+  When will the divorce decree be granted?
+subquestion: |
+  In most 1A divorces, the decree is granted on the same day it's filed,
+  but you can request a different date if needed.
+  
+  % if get_config('debug'):
+  
+  **Progress**: R-408 Report (3 of 3 sections)
+  % endif
+fields:
+  - Date decree will be (or was) granted: decree_granted_date
+    datatype: date
+    default: ${ today() }
+    help: |
+      This is typically today's date for an uncontested divorce.
+      
+      If you're filing the papers today, use today's date.
+      
+      If you're preparing forms to file later, you can estimate or leave as today.
+---

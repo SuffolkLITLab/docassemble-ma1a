@@ -1,0 +1,219 @@
+---
+include:
+  - docassemble.AssemblyLine:assembly_line.yml
+  - docassemble.MassAccess:massaccess.yml
+  - ma1a_intro.yml
+  - ma1a_shared_data.yml
+  - ma1a_form_selection.yml
+  - ma1a_cjd101a.yml
+  - ma1a_affidavit.yml
+  - ma1a_r408.yml
+  - ma1a_financial.yml
+  - ma1a_findings.yml
+  - ma1a_separation_agreement.yml
+  - ma1a_motion.yml
+  - ma1a_conditional_forms.yml
+  - ma1a_download.yml
+---
+metadata:
+  title: |
+    MA 1A Divorce Package
+  short title: MA1A Forms
+  description: |
+    Complete package for Massachusetts 1A no-fault divorce. 
+    Generates all required forms for uncontested divorce filing.
+  jurisdiction: NAM-US-US+MA
+  version: 0.72.0
+---
+features:
+  navigation: True
+  question help button: True
+  debug: True
+  pre: |
+    % if get_config('debug'):
+    <div style="background: #e3f2fd; border-left: 4px solid #2196f3; padding: 8px 12px; margin-bottom: 12px; font-size: 0.9em;">
+    <strong>Debug Mode</strong> | Package: <code>${ user_info().package }</code> | Question: <code>${ user_info().question_id }</code>
+    </div>
+    % endif
+---
+sections:
+  - intro: Getting Started
+  - about_parties: About You and Your Spouse
+  - about_marriage: About Your Marriage
+  - about_children: About Your Children
+  - select_forms: Forms You Need
+  - complete_forms: Complete Your Forms
+  - review: Review Your Answers
+  - download: Download Your Documents
+---
+objects:
+  - ma1a_case: DAObject
+---
+code: |
+  # Case tracking object
+  ma1a_case.shared_data_complete = False
+  ma1a_case.cjd101a_complete = False
+  ma1a_case.affidavit_complete = False
+  ma1a_case.r408_complete = False
+  ma1a_case.cjd301_complete = False
+  ma1a_case.cjd304_complete = False
+  ma1a_case.cjd305_complete = False
+  ma1a_case.custody_disclosure_complete = False
+  ma1a_case.separation_agreement_complete = False
+  ma1a_case.indigency_complete = False
+  ma1a_case.cjd400_complete = False
+  ma1a_case.initialized = True
+---
+mandatory: True
+code: |
+  log("[ma1a_package] Starting MA1A divorce interview")
+  progress_message = "Starting interview..."
+  
+  al_intro_screen
+  
+  nav.set_section('intro')
+  progress_message = "Showing intro..."
+  ma1a_custom_intro
+  
+  # Collect party information
+  nav.set_section('about_parties')
+  progress_message = "Collecting information about you and your spouse..."
+  users.gather()
+  other_parties.gather()
+  
+  # Collect marriage information
+  nav.set_section('about_marriage')
+  progress_message = "Collecting marriage details..."
+  marriage_date
+  marriage_place
+  last_lived_together_date
+  last_lived_together_place
+  
+  # Collect children information
+  nav.set_section('about_children')
+  progress_message = "Collecting information about children..."
+  has_minor_children
+  if has_minor_children:
+    children.gather()
+  
+  # Court and attorney
+  trial_court
+  has_attorney
+  if has_attorney:
+    attorney_name
+    attorney_bbo_number
+  
+  shared_data_complete = True
+  
+  # Determine which forms are needed
+  nav.set_section('select_forms')
+  progress_message = "Determining which forms you need..."
+  form_selection_complete
+  
+  # Collect form-specific data
+  nav.set_section('complete_forms')
+  progress_message = "Collecting form-specific information..."
+  
+  if 'cjd101a' in ma1a_case.forms_needed:
+    cjd101a_complete
+  
+  if 'affidavit' in ma1a_case.forms_needed:
+    affidavit_complete
+  
+  if 'r408' in ma1a_case.forms_needed:
+    r408_complete
+  
+  if 'financial' in ma1a_case.forms_needed:
+    financial_statements_complete
+  
+  if 'custody_disclosure' in ma1a_case.forms_needed:
+    custody_disclosure_complete
+  
+  if 'cjd304' in ma1a_case.forms_needed:
+    cjd304_complete
+    findings_complete
+    if deviating_from_guidelines:
+      ma1a_case.forms_needed.append('findings')
+  
+  if 'indigency' in ma1a_case.forms_needed:
+    indigency_complete
+  
+  if 'separation_agreement' in ma1a_case.forms_needed:
+    separation_agreement_complete
+  
+  nav.set_section('review')
+  progress_message = "Preparing review..."
+  review_complete
+  
+  nav.set_section('download')
+  progress_message = "Generating PDFs..."
+  download_screen
+---
+id: review_before_download
+continue button field: review_complete
+question: |
+  Review your answers
+subquestion: |
+  Please review your information before generating your forms.
+  
+  ## Parties
+  
+  **Petitioner (Party A):** ${ users[0].name.full() }  
+  Address: ${ users[0].address.on_one_line() }  
+  Phone: ${ users[0].phone_number }
+  
+  **Respondent (Party B):** ${ other_parties[0].name.full() }  
+  Address: ${ other_parties[0].address.on_one_line() }  
+  Phone: ${ other_parties[0].phone_number }
+  
+  ## Marriage
+  
+  - Married: ${ marriage_date } in ${ marriage_place }
+  - Last lived together: ${ last_lived_together_date } at ${ last_lived_together_place }
+  
+  % if has_minor_children:
+  ## Children
+  
+  % for child in children:
+  - ${ child.name.full() } (DOB: ${ child.birthdate })
+  % endfor
+  % else:
+  
+  **No minor children**
+  % endif
+  
+  ## Court
+  
+  ${ trial_court }
+  
+  ## Joint Petition (CJD-101A)
+  
+  - Grounds: ${ grounds_for_divorce }
+  - Breakdown date: ${ breakdown_date }
+  
+  ### Previous Actions
+  
+  ${ previous_action_details }
+  
+  ### Name Changes
+  
+  % if users[0].name_will_change:
+  - ${ users[0].name.full() } will change name to **${ users[0].new_name_after_divorce }**
+  % else:
+  - ${ users[0].name.full() } will not change their name
+  % endif
+  
+  % if other_parties[0].name_will_change:
+  - ${ other_parties[0].name.full() } will change name to **${ other_parties[0].new_name_after_divorce }**
+  % else:
+  - ${ other_parties[0].name.full() } will not change their name
+  % endif
+  
+  ### Separation Agreement
+  
+  **Status**: ${ "Attached with petition" if separation_agreement_filed == "attached" else "Will be filed later" }  
+  **Incorporation**: ${ "Merge" if agreement_incorporation_method == "merge" else "Survive" }
+  
+  ---
+  
+  Click **Continue** to generate your forms.
